@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <!--[if lte IE 9]><meta http-equiv="refresh" content="0;url=/ie.html"><![endif]-->
+    {% if page.title %}
+    <title>{{ page.title }}</title>
+    {% else %}
+    <title>{{ site.title }}</title>
+    {% endif %}
+    <meta name="description" content="">
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/highlight.base.css">
+    <link rel="stylesheet" type="text/css" href="/assets/css/highlight.theme/{{ site.highlight-theme }}.css">
+  </head>
+  <body>
+    <aside id="sidebar">
+      <nav id="tags">
+        <a href="/index.html" id="avatar" style="background:url({{site.avatar}});background-size:100px 100px;"></a>
+
+        <ul id="tags__ul">
+          <li id="js-label1" class="tags__li tags-btn active">所有文章 <span class="post_count"></span></li>
+          {% for category in site.categories %}
+            <li id="js-label{{forloop.index | plus:1 }}" class="tags__li tags-btn">{{ category | first }}<span class="post_count"></span></li>
+          {% endfor %}
+        </ul>
+
+        <div id="tags__bottom">
+          <a href="mailto:{{ site.email }}" id="icon-email" class="tags-btn fontello"></a>
+          <a href="/rss.xml" id="icon-feed" class="tags-btn fontello"></a>
+        </div>
+      </nav> <!-- end #tags -->
+
+      <div id="posts-list">
+        <form action="" id="search-form">
+          <a href="/index.html" id="mobile-avatar" style="background:url({{site.avatar}});background-size:50px 50px;"></a>
+          <!-- NOTE: input field is disabled by default -->
+          <input id="search-input" type="text" placeholder="Search..." disabled >
+        </form>
+
+        <nav id="pl__container">
+        {% for post in site.posts %}
+          <a class="{{ post.categories }} pl__all" href="{{ post.url }}"><span class="pl__circle"></span><span class="pl__title">{{ post.title }}</span><span class="pl__date">{{ post.date | date: "%b %Y" }}</span></a>
+        {% endfor %}
+        </nav>
+      </div> <!-- end #posts-list -->
+    </aside> <!-- end #sidebar -->
+    <div id="post__toc">
+      <span id="post__toc-title">目录</span>
+      <ul id="post__toc-ul"></ul>
+    </div>
+    <div id="post">
+      <div id="pjax">
+        {{ content }}
+      </div> <!-- end #pjax -->
+<!-- 
+      <div id="post__toc-trigger">
+        <div id="post__toc">
+          <span id="post__toc-title">目录</span>
+          <ul id="post__toc-ul"></ul>
+        </div>
+      </div> -->
+    </div> <!-- end #post -->
+
+    <button id="js-fullscreen"><span id="icon-arrow" class="fontello"></span></button>
+    <button id="js-toc"><span id="icon-list" class="fa fa-list-ul"></span></button>
+    <!--jquery-->
+    <script src="/assets/js/jquery-2.0.3.min.js"></script>
+    <script src="/assets/js/jquery.pjax.js"></script>
+    <script src="/assets/js/nprogress.js"></script>
+    <script src="/assets/js/highlight.pack.js"></script>
+    <!--自由代码-->
+    <script>
+        window['tag1'] = $('.pl__all'),
+        {% for category in site.categories %}
+        window['tag{{ forloop.index | plus:1 }}'] = $('.{{category | first }}');
+        {% endfor %}
+    </script>
+    <script src="/assets/js/script.js"></script>
+    <!--评论框-->
+    <script>
+      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+      var disqus_shortname = '{{ site.disqus }}';
+      var disqus_identifier = '{{ page.id }}-{{ page.title }}';
+      var disqus_config = function () { 
+        this.language = "en";
+      };
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <!--百度统计-->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?{{ site.baidu }}";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+    <!--latex公式-->
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  </body>
+</html>
