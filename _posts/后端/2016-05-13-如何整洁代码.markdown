@@ -1,0 +1,174 @@
+---
+layout: post
+category: 后端
+---
+
+# 为什么要整洁代码
+
+对于一个初进来公司的同事，真是深有体会啊!以前在公司里面，一两人负责一块项目，代码想自己怎么样写就怎么样写。到来新公司后，看人家的代码，代码不懂就要问人家，添加人与人的沟通成本，加上如果代码乱七八糟，又加重了维护成为。那么，怎么样才能写好代码呢。我在这里略略说一下。
+
+# 可维护性
+
+整洁代码主要目的都是为了以后维护工作。我现在做是代码测试工作的，一开始不怎么样会写代码，就把所有“希望结果”的内容写死了，这样一开始写测试代码可能比较方便，不过到后面维护的时候，如果你想在InitSample里面加多一两条数据，那么你前面所写的测试代码（因为所希望的结果写死了）数据基本挂了一半，又要重新修改，所以又要修改测试代码，增加工作量。最悲催的是，如果你的那个项目也没有是乱糟糟的代码，没有可维护性的话，就没有人想接手你的乱糟糟的代码工作，就算接手，也要了解这一顿乱糟糟的代码，大大减低工作效率，这个项目也准备沉下去了。。。
+
+##没有整洁代码之前
+
+```
+	this.AssertEqual(
+		this.CollectionAo.GetBatchBrief([]int{20019, 20016}),
+		[]Collection{
+			Collection{
+				ContentCollectionId: 10001,
+				ContentId:           20019,
+				Title:               "帮贡排行活动",
+				Image:               "http://bakeweb.qiniudn.com/Fn2QOriXCJVgoDcgzvnmlf0vXQLr?1280X948",
+				Introduce:           "帮贡排行活动",
+				Style:               1,
+				Content: Content{
+					ContentBase: ContentBase{
+						ContentId:    20019,
+						CoverTitle:   "帮贡排行活动",
+						CoverImage:   "http://bakeweb.qiniudn.com/Fn2QOriXCJVgoDcgzvnmlf0vXQLr?1280X948",
+						CoverSummary: "帮贡排行活动",
+						PrefixTitle:  "",
+						ClientId:     10001,
+						Type:         3,
+						State:        2,
+						HotNum:       4.400000,
+						EasyNum:      0.000000,
+						BeautyNum:    0.000000,
+						ClientName:   "Edward",
+						ClientImage:  "http://img02.imgcdc.com/grab/img/20160426/10441461617850.jpg",
+						ClientSign:   "",
+						ContentIds:   []int{},
+						ClientIds:    []int{},
+						Types:        []int{},
+						Sort:         "",
+						ContentClientTotal: ContentClientTotal{
+							ContentClientTotalId: 0,
+							ContentId:            20019,
+							LikeNum:              0,
+							CollectNum:           0,
+							VisitNum:             0,
+							ShareNum:             0,
+							HateNum:              0,
+							VisitClient: ContentClient{
+								ContentClientId: 0,
+								ContentId:       0,
+								ClientId:        0,
+								ClientName:      "",
+								ClientImage:     "",
+								VisitNum:        0,
+								LikeNum:         0,
+								ShareNum:        0,
+								CollectNum:      0,
+							},
+						},
+					},
+					Comment: Comments{
+						Count: 0,
+						Data:  []Comment{},
+					},
+					CommentNum:          1,
+					ClassifyId:          []int{},
+					ClassifyName:        []string{},
+					ClassifyPrefixTitle: "",
+				},
+				ContentIds: []int{},
+				Component: CollectionComponents{
+					Count: 0,
+					Data:  []Content{},
+				},
+				ComponentIds: []int{},
+			},
+			Collection{
+				ContentCollectionId: 10002,
+				ContentId:           20016,
+				Title:               "新手食谱2",
+				Image:               "http://bakeweb.qiniudn.com/Fn2QOriXCJVgoDcgzvnmlf0vXQLr?1280X948",
+				Introduce:           "新手食谱2",
+				Style:               1,
+				Content: Content{
+					ContentBase: ContentBase{
+						ContentId:    20016,
+						CoverTitle:   "踩楼活动",
+						CoverImage:   "http://image.hongbeibang.com/Fv5WjBcfnO4fYIbMqm79cWgMVfxy?474X474",
+						CoverSummary: "这是一个踩楼活动",
+						PrefixTitle:  "踩楼活动",
+						ClientId:     10001,
+						Type:         3,
+						State:        2,
+						HotNum:       1.900000,
+						EasyNum:      0.000000,
+						BeautyNum:    0.000000,
+						ClientName:   "Edward",
+						ClientImage:  "http://img02.imgcdc.com/grab/img/20160426/10441461617850.jpg",
+						ClientSign:   "",
+						ContentIds:   []int{},
+						ClientIds:    []int{},
+						Types:        []int{},
+						Sort:         "",
+						ContentClientTotal: ContentClientTotal{
+							ContentClientTotalId: 0,
+							ContentId:            20016,
+							LikeNum:              0,
+							CollectNum:           0,
+							VisitNum:             0,
+							ShareNum:             0,
+							HateNum:              0,
+							VisitClient: ContentClient{
+								ContentClientId: 0,
+								ContentId:       0,
+								ClientId:        0,
+								ClientName:      "",
+								ClientImage:     "",
+								VisitNum:        0,
+								LikeNum:         0,
+								ShareNum:        0,
+								CollectNum:      0,
+							},
+						},
+					},
+					Comment: Comments{
+						Count: 0,
+						Data:  []Comment{},
+					},
+					CommentNum:          1,
+					ClassifyId:          []int{},
+					ClassifyName:        []string{},
+					ClassifyPrefixTitle: "",
+				},
+				ContentIds: []int{},
+				Component: CollectionComponents{
+					Count: 0,
+					Data:  []Content{},
+				},
+				ComponentIds: []int{},
+			},
+		})
+```
+
+##整洁代码之后
+```
+	batchBriefTestDemo := colDemo
+	for singleKey, singleValue := range batchBriefTestDemo {
+		batchBriefTestDemo[singleKey].Content = this.ContentAo.GetBrief(singleValue.ContentId)
+	}
+	batchBrief := this.CollectionAo.GetBatchBrief([]int{20019, 20016})
+	this.AssertEqual(batchBrief, batchBriefTestDemo)
+```
+
+是不是觉得代码更好看了，更好明白，更好明白啦？萌萌哒。。。
+测试代码本来的意思就是，自己内存有一份希望结果，然后修改内存一块希望（预期）结果，再去拉方法的数据来对比，并不是每个方法测试方法都新增加一个希望结果，这个的这个希望这个就不连贯，前面改了测试例子（InitSample）或方法，数据结构改变了，后面的希望测试结果就会跟着错，因为没有希望结果没有一个连贯性或者是独立性，不受其他方法和例子影响。
+
+#可读性
+
+代码看起来就本来好枯燥的，怎么写才能看得明白了。
+1.变量名
+2.eNum的使用
+3.正确的代码缩进
+4.重复的代码打包成一个方法
+
+#学习
+还有一些优化代码的方法还未写出来，不过都离不开可维护性和可读性这两个方面，不同的语言的优化方法也有些不同，所以，大家一起努力学习吧。
+
