@@ -510,7 +510,6 @@ class D implements I1, I3{
 举一个例子：有一个集团公司，下属单位有分公司和直属部门，现在要求打印出所有下属单位的员工ID。先来看一下违反迪米特法则的设计。
 
  ```
- 
 //总公司员工
 class Employee{
     private String id;
