@@ -1,0 +1,69 @@
+---
+layout: post
+category: 后端
+---
+
+#介绍
+
+Aspect Oriented Programming(AOP)，面向切面编程，是一个比较热门的话题。AOP主要实现的目的是针对业务处理过程中的切面进行提取，它所面对的是处理过程中的某个步骤或阶段，以获得逻辑过程中各部分之间低耦合性的隔离效果。比如我们最常见的就是日志记录了，举个例子，我们现在提供一个查询学生信息的服务，但是我们希望记录有谁进行了这个查询。如果按照传统的OOP的实现的话，那我们实现了一个查询学生信息的服务接口(StudentInfoService)和其实现 类 （StudentInfoServiceImpl.java），同时为了要进行记录的话，那我们在实现类(StudentInfoServiceImpl.java)中要添加其实现记录的过程。这样的话，假如我们要实现的服务有多个呢？那就要在每个实现的类都添加这些记录过程。这样做的话就会有点繁琐，而且每个实现类都与记录服务日志的行为紧耦合，违反了面向对象的规则。那么怎样才能把记录服务的行为与业务处理过程中分离出来呢？看起来好像就是查询学生的服务自己在进行，但却是背后日志记录对这些行为进行记录，并且查询学生的服务不知道存在这些记录过程，这就是我们要讨论AOP的目的所在。AOP的编程，好像就是把我们在某个方面的功能提出来与一批对象进行隔离，这样与一批对象之间降低了耦合性，可以就某个功能进行编程。
+
+软件开发的目标是要对世界的部分元素或者信息流建立模型，实现软件系统的工程需要将系统分解成可以创建和管理的模块。于是出现了以系统模块化特性的面向对象程序设计技术。模块化的面向对象编程极度极地提高了软件系统的可读性、复用性和可扩展性。向对象方法的焦点在于选择对象作为模块的主要单元，并将对象与系统的所有行为联系起来。对象成为问题领域和计算过程的主要元素。但面向对象技术并没有从本质上解决软件系统的可复用性。创建软件系统时，现实问题中存在着许多横切关注点，比如安全性检查、日志记录、性能监控，异常处理等，它们的实现代码和其他业务逻辑代码混杂在一起，并散落在软件不同地方（直接把处理这些操作的代码加入到每个模块中），这无疑破坏了OOP的“单一职责”原则，模块的可重用性会大大降低，这使得软件系统的可维护性和复用性受到极大限制。这时候传统的OOP设计往往采取的策略是加入相应的代理（Proxy）层来完成系统的功能要求，但这样的处理明显使系统整体增加了一个层次的划分，复杂性也随之增加，从而给人过于厚重的感觉。由此产生了面向方面编程(AOP)技术。这种编程模式抽取出散落在软件系统各处的横切关注点代码，并模块化，归整到一起，这样进一步提高软件的可维护性、复用性和可扩展性
+
+```
+advice = function(originalFunc){
+ console.log("before function");
+ originalFunc();
+ console.log("after function");
+}
+var obj = {
+ foo: function(){
+  console.log('foo');
+ }
+}
+advice(obj.foo)
+```
+
+```
+Function.prototype.before = function( func ) {
+	   var __self = this;
+	   return function() {
+		      if ( func.apply( this, arguments ) === false ) {
+		         	return false;
+		      }
+	       return __self.apply( this, arguments );
+	   }
+}
+
+Function.prototype.after = function( func ) {
+   	var __self = this;
+	   return function() {
+		      var ret = __self.apply( this, arguments );
+		      if( ret === false) {
+			         return false;
+		      }
+		      func.apply( this, arguments );
+		      return ret;
+	   }
+}
+
+window.onload = function() {
+	   console.log(1);
+}
+
+window.onload = ( window.onload || function() {} ).after(function() {
+	   console.log(2);
+});
+
+var Fun = function() {
+	   console.log(3);
+}
+
+var fun = Fun.after(function() {
+	   console.log(4);
+   	console.log(arguments);
+});
+
+fun('bbs0101');
+```
+
+
