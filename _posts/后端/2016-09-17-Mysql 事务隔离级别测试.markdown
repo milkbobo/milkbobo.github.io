@@ -1,0 +1,418 @@
+---
+layout: post
+category: 后端
+---
+
+ 1.查看当前会话隔离级别
+ 
+select @@tx_isolation;
+ 
+2.查看系统当前隔离级别
+ 
+select @@global.tx_isolation;
+ 
+3.设置当前会话隔离级别
+ 
+set session transaction isolation level repeatable read;
+ 
+4.设置系统当前隔离级别
+ 
+set global transaction isolation level repeatable read;
+
+数据库事务(Database Transaction) ，是指作为单个逻辑工作单元执行的一系列操作，要么完整地执行，要么完全地不执行。 
+
+通过将一组相关操作组合为一个要么全部成功要么全部失败的单元，可以简化错误恢复并使应用程序更加可靠。一个逻辑工作单元要成为事务，必须满足所谓的ACID（原子性、一致性、隔离性和持久性）属性。
+
+隔离级别越低，并发性能越好；
+
+MySQL 5.5默认使用innodb存储引擎（表类型），innodb是支持事务处理的，对innodb下各事务隔离级别进行测试，可以更好的理解各级别产生的各种问题~
+
+设置innodb的事务级别方法是：set 作用域 transaction isolation level 事务隔离级别，例如~
+mysql > set global transaction isolation level read committed; //全局的
+mysql > set session transaction isolation level read committed; //当前会话
+测试使用的表名为student ,表结构为id(int)，name(varchar(16))，age(int)~
+
+CREATE TABLE `bakeweb`.`tx` (
+ `id` int NOT NULL AUTO_INCREMENT,
+ `name` varchar(255),
+ `age` int,
+ PRIMARY KEY (`id`)
+) ENGINE=`InnoDB` COMMENT='';
+
+insert into student values(1,'kate',18);
+insert into student values(2,'jim',18);
+
+1.测试未授权读取（read uncommitted）：允许脏读取，但不允许更新丢失
+
+事务T1：
+mysql> select @@tx_isolation;
++------------------+
+| @@tx_isolation |
++------------------+
+| READ-UNCOMMITTED |
++------------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+mysql> update student set name = 'tom' where id = 2;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1 Changed: 1 Warnings: 0
+
+事务T2：
+mysql> select @@tx_isolation;
++------------------+
+| @@tx_isolation |
++------------------+
+| READ-UNCOMMITTED |
++------------------+
+1 row in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | tom | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+
+事务T1：
+mysql> rollback;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+以上可以看出，脏读了~
+
+事务T2：
+mysql> update student set name = 'bob' where id = 2;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1 Changed: 1 Warnings: 0
+
+事务T1：
+mysql> update student set name = 'tom' where id = 2;
+ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+以上可以看出事务T1和事务T2之间更新没有丢失，直到一个更新提交后另一个更新才能进行，这里发生了等待超时错误~
+
+2.测试授权读取（read committed）：允许不可重复读取，但不允许脏读取
+
+事务T1：
+mysql> select @@tx_isolation;
++----------------+
+| @@tx_isolation |
++----------------+
+| READ-COMMITTED |
++----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> select @@tx_isolation;
++----------------+
+| @@tx_isolation |
++----------------+
+| READ-COMMITTED |
++----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T1：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+
+事务T2：
+mysql> insert into student values(3,'bob',20);
+Query OK, 1 row affected (0.00 sec)
+mysql> commit;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T1：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
++----+------+-----+
+2 rows in set (0.00 sec)
+//没有第一次那样有脏读
+
+事务T2：
+mysql> commit;
+Query OK, 0 rows affected (0.00 sec)
+
+
+事务T1:
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+可以看出，在T1事务中，条件相同的两次读取出现不同的结果
+就是说，要分蛋糕给2个人，切了一刀后，，然后突然又发现有多了一个人分蛋糕，就有点不爽了。违反了数据库的一致性。
+
+3.可重复读取(Repeatable Read)：禁止不可重复读取和脏读取，但是有时可能出现幻影数据，innodb中使用了措施来防止幻读
+
+事务T1：
+mysql> select @@tx_isolation;
++-----------------+
+| @@tx_isolation |
++-----------------+
+| REPEATABLE-READ |
++-----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> select @@tx_isolation;
++-----------------+
+| @@tx_isolation |
++-----------------+
+| REPEATABLE-READ |
++-----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> update student set name = 'mary' where id = 3;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1 Changed: 1 Warnings: 0
+
+事务T1：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+可以看出，没有出现脏读~
+
+事务T2：
+mysql> insert into student values(4,'lucy',18);
+Query OK, 1 row affected (0.00 sec
+
+事务T1：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+
+事务T2：
+mysql> commit;
+Query OK, 0 rows affected (0.01 sec)
+
+事务T1：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | bob | 20 |
++----+------+-----+
+3 rows in set (0.00 sec)
+可以看出，在同一个事务中没有出现不可重复读（更新提交后）和幻读（插入提交后）~
+
+4.序列化(Serializable)：提供严格的事务隔离，锁表，读取时会自动设置读锁，然后所有会话只能进行读操作；写时自动设置写锁，然后所有会话只能等待~
+
+事务T1：
+mysql> select @@tx_isolation;
++----------------+
+| @@tx_isolation |
++----------------+
+| SERIALIZABLE |
++----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | mary | 20 |
+| 4 | lily | 18 |
++----+------+-----+
+4 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> select @@tx_isolation;
++----------------+
+| @@tx_isolation |
++----------------+
+| SERIALIZABLE |
++----------------+
+1 row in set (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | mary | 20 |
+| 4 | lily | 18 |
++----+------+-----+
+4 rows in set (0.00 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T2：
+mysql> update student set name = 'lucy' where id = 4;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1 Changed: 1 Warnings: 0
+
+事务T1：
+mysql> select * from student;
+ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+
+事务T1：
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+mysql> select * from student;
+ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+从上可以看出,T2存在写锁，所有T2的读操作会等待超时~
+
+事务T2：
+mysql> COMMIT;
+Query OK, 0 rows affected (0.01 sec)
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+事务T1：
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | mary | 20 |
+| 4 | lucy | 18 |
++----+------+-----+
+4 rows in set (0.01 sec)
+
+事务T2：
+mysql> select * from student;
++----+------+-----+
+| id | name | age |
++----+------+-----+
+| 1 | kate | 18 |
+| 2 | jim | 18 |
+| 3 | mary | 20 |
+| 4 | lucy | 18 |
++----+------+-----+
+4 rows in set (0.00 sec)
+从上面可以看出，T1设置了读锁，T2还可以继续读取
+
+事务T2：
+mysql> update student set name = 'bob' where id = 2;
+ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+从上面可以看出，T1设置了读锁，T2不能进行写操作，写操作等待超时~
+
+Read uncommitted 读未提交
+
+公司发工资了，领导把5000元打到singo的账号上，但是该事务并未提交，而singo正好去查看账户，发现工资已经到账，是5000元整，非常高兴。可是不幸的是，领导发现发给singo的工资金额不对，是2000元，于是迅速回滚了事务，修改金额后，将事务提交，最后singo实际的工资只有2000元，singo空欢喜一场。
+
+出现上述情况，即我们所说的脏读，两个并发的事务，“事务A：领导给singo发工资”、“事务B：singo查询工资账户”，事务B读取了事务A尚未提交的数据。
+
+当隔离级别设置为Read uncommitted时，就可能出现脏读，如何避免脏读，请看下一个隔离级别。
+
+Read committed 读提交
+
+singo拿着工资卡去消费，系统读取到卡里确实有2000元，而此时她的老婆也正好在网上转账，把singo工资卡的2000元转到另一账户，并在singo之前提交了事务，当singo扣款时，系统检查到singo的工资卡已经没有钱，扣款失败，singo十分纳闷，明明卡里有钱，为何......
+
+出现上述情况，即我们所说的不可重复读，两个并发的事务，“事务A：singo消费”、“事务B：singo的老婆网上转账”，事务A事先读取了数据，事务B紧接了更新了数据，并提交了事务，而事务A再次读取该数据时，数据已经发生了改变。
+
+当隔离级别设置为Read committed时，避免了脏读，但是可能会造成不可重复读。
+
+大多数数据库的默认级别就是Read committed，比如Sql Server , Oracle。如何解决不可重复读这一问题，请看下一个隔离级别。
+
+Repeatable read 重复读
+
+当隔离级别设置为Repeatable read时，可以避免不可重复读。当singo拿着工资卡去消费时，一旦系统开始读取工资卡信息（即事务开始），singo的老婆就不可能对该记录进行修改，也就是singo的老婆不能在此时转账。
+
+虽然Repeatable read避免了不可重复读，但还有可能出现幻读。
+
+singo的老婆工作在银行部门，她时常通过银行内部系统查看singo的信用卡消费记录。有一天，她正在查询到singo当月信用卡的总消费金额（select sum(amount) from transaction where month = 本月）为80元，而singo此时正好在外面胡吃海塞后在收银台买单，消费1000元，即新增了一条1000元的消费记录（insert transaction ... ），并提交了事务，随后singo的老婆将singo当月信用卡消费的明细打印到A4纸上，却发现消费总额为1080元，singo的老婆很诧异，以为出现了幻觉，幻读就这样产生了。
+
+注：MySQL的默认隔离级别就是Repeatable read。
+
+Serializable 序列化
+
+Serializable是最高的事务隔离级别，同时代价也花费最高，性能很低，一般很少使用，在该级别下，事务顺序执行，不仅可以避免脏读、不可重复读，还避免了幻像读。
+
+
