@@ -32,6 +32,7 @@ mysql > set global transaction isolation level read committed; //全局的
 mysql > set session transaction isolation level read committed; //当前会话
 测试使用的表名为student ,表结构为id(int)，name(varchar(16))，age(int)~
 
+```sql
 CREATE TABLE `bakeweb`.`tx` (
  `id` int NOT NULL AUTO_INCREMENT,
  `name` varchar(255),
@@ -41,6 +42,8 @@ CREATE TABLE `bakeweb`.`tx` (
 
 insert into student values(1,'kate',18);
 insert into student values(2,'jim',18);
+
+```
 
 1.测试未授权读取（read uncommitted）：允许脏读取，但不允许更新丢失
 
