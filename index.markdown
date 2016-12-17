@@ -17,4 +17,7 @@ title: Edward的博客
 
 # 友情链接
 * [fishedee博客](http://fishedee.com)
+* [jd博客](http://www.jdscript.com)
 * [winmay博客](http://winmay.github.io)
+
+
