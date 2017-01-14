@@ -52,11 +52,11 @@ category: 数据结构与算法
 	第一步：查找删除结点右子树中最小的那个值，也就是右子树中位于最左方的那个结点。然后将这个结点的值的父节点记录下来。并且将该节点的值赋给我们要删除的结点。也就是覆盖。 	第二步：然后将右子树中最小的那个结点进行删除，该节点肯定符合上述三种情况的某一种情况，所以可以使用上述的方法进行删除。
 	
 ### 演示
-http://zh.visualgo.net/bst 
+[http://zh.visualgo.net/bst] 
 # 红黑树
 
 ## 简介
-	红黑树（Red Black Tree） 是一种自平衡二叉查找树，是在计算机科学中用到的一种数据结构，典型的用途是实现关联数组。
+红黑树（Red Black Tree） 是一种自平衡二叉查找树，是在计算机科学中用到的一种数据结构，典型的用途是实现关联数组。
 	
 ## 特性
 ### 红黑树是每个节点都带有颜色属性的二叉查找树，颜色或红色或黑色。在二叉查找树强制一般要求以外，对于任何有效的红黑树我们增加了如下的额外要求:
@@ -67,7 +67,8 @@ http://zh.visualgo.net/bst 
 5. 从任一节点到其每个叶子的所有路径都包含相同数目的黑色节点。
 	
 ## 演示
-http://sandbox.runjs.cn/show/2nngvn8w
+[http://sandbox.runjs.cn/show/2nngvn8w]
+[http://blog.csdn.net/hackooo/article/details/10161393]
 
 # 哈夫曼树
 哈夫曼树是一种带权路径长度最短的二叉树，也称为最优二叉树。下面用一幅图来说明。
@@ -87,7 +88,7 @@ http://sandbox.runjs.cn/show/2nngvn8w
 ![](/assets/img/14836905542538.jpg)
 ![](/assets/img/14836905678885.jpg)
 ![](/assets/img/14836905842360.jpg)
-http://www.docin.com/p-442541094.html
+[http://www.docin.com/p-442541094.html]
 
 # 满二叉树：
 * 一颗深度为k且有2^k-1个结点的二叉树称为满二叉树。
@@ -106,6 +107,9 @@ http://www.docin.com/p-442541094.html
 完全二叉树
 ![](/assets/img/14825637576152.jpg)
 
+
+# B树、B-树、B+树、B*树 红黑树
+[http://blog.csdn.net/quitepig/article/details/8041308]
 
 
 
