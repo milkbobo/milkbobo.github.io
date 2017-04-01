@@ -1,0 +1,76 @@
+---
+layout: post
+category: 后端
+---
+
+套接字( socket ) ： 套接口也是一种进程间通信机制，与其他通信机制不同的是，它可用于不同机器间的进程通信。
+
+网络上的两个程序通过一个双向的通信连接实现数据的交换，这个连接的一端称为一个socket。
+
+建立网络通信连接至少要一对端口号(socket)。socket本质是编程接口(API)，对TCP/IP的封装，TCP/IP也要提供可供程序员做网络开发所用的接口，这就是Socket编程接口；HTTP是轿车，提供了封装或者显示数据的具体形式;Socket是发动机，提供了网络通信的能力。
+
+Socket的英文原义是“孔”或“插座”。作为BSD UNIX的进程通信机制，取后一种意思。通常也称作"套接字"，用于描述IP地址和端口，是一个通信链的句柄，可以用来实现不同虚拟机或不同计算机之间的通信。在Internet上的主机一般运行了多个服务软件，同时提供几种服务。每种服务都打开一个Socket，并绑定到一个端口上，不同的端口对应于不同的服务。Socket正如其英文原意那样，像一个多孔插座。一台主机犹如布满各种插座的房间，每个插座有一个编号，有的插座提供220伏交流电， 有的提供110伏交流电，有的则提供有线电视节目。 客户软件将插头插到不同编号的插座，就可以得到不同的服务。
+
+socket起源于Unix，而Unix/Linux基本哲学之一就是“一切皆文件”，都可以用“打开open –> 读写write/read –> 关闭close”模式来操作。Socket就是该模式的一个实现，socket即是一种特殊的文件，一些socket函数就是对其进行的操作（读/写IO、打开、关闭）.
+	
+server.go
+```golang
+package main
+
+import (
+    "bufio"
+    "fmt"
+    "log"
+    "net"
+)
+
+func handleConnection(conn net.Conn) {
+    data, err := bufio.NewReader(conn).ReadString('\n')
+    if err != nil {
+        log.Fatal("get client data error: ", err)
+    }
+    fmt.Printf("%#v\n", data)
+    fmt.Fprintf(conn, "hello client\n")
+    conn.Close()
+}
+func main() {
+    ln, err := net.Listen("tcp", ":6010")
+    if err != nil {
+        panic(err)
+    }
+    for {
+        conn, err := ln.Accept()
+        if err != nil {
+            log.Fatal("get client connection error: ", err)
+        }
+        go handleConnection(conn)
+    }
+}
+```
+
+client.go
+```golang
+package main
+
+import (
+    "bufio"
+    "fmt"
+    "net"
+)
+
+func main() {
+    conn, err := net.Dial("tcp", ":6010")
+    if err != nil {
+        panic(err)
+    }
+    fmt.Fprintf(conn, "hello server\n")
+    data, err := bufio.NewReader(conn).ReadString('\n')
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf("%#v\n", data)
+}
+```
+
+共享内存：这个是经常用的，共享内存号称是最快的进程间通信方式，她在系统内存中开辟一块内存区，分别映射到各个进程的虚拟地址空间中，任何一个进程操作了内存区都会反映到其他进程中，各个进程之间的通信并没有像copy数据一样从内核到用户，再从用户到内核的拷贝。这种方式可以像访问自己的私有空间一样访问共享内存区，但是这事这种特性加大了共享内存的编程难度，对于数据的同步问题是一个难点，没有一定的经验很 容易造成数据的混乱。但是我们可以使用一个折中的方法，我们可以结合它和管道来使用。
+
